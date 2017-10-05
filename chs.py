@@ -9,6 +9,7 @@ CHS -- Csv Hash Steganography
 
 Created by pavel on 05.10.17 17:21
 """
+import os
 import datetime
 import hashlib
 import mmh3
@@ -22,6 +23,8 @@ __email__ = 'pavelmstu@stego.su'
 
 seed = 239239239239
 salt = 'bmstu20132017'
+
+ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 
 
 def get_byte(line):
@@ -40,7 +43,7 @@ def generate_source(path_csv):
         if len(bytes_dict[byte_]) >= 1:
             line_list = bytes_dict[byte_]
             line = line_list[0]
-            line_list.popleft()
+            line_list.pop(0)
             return line
 
         line = fr.readline()
@@ -128,28 +131,93 @@ def stego_generate(
     """
     crypt_message = encrypt(message, password)
 
-
     with open(path_csv_out, 'w') as fw:
         header, get_value, end = generate_source(path_csv_in)
         fw.write(header)
         print("header:: '{0}'".format(header.replace('\n', '')))
-        for byte_ in bytes_:
+        for byte_ in crypt_message:
             line = get_value(byte_)
             fw.write(line)
             print("{0} --> '{1}'".format(byte_, line.replace('\n', '')))
         end()
 
-    print("Хеш-стеганография осуществлена! См. файл:\n\t'{0}'".format(path_csv_out))
+
+def stego_extract(
+    path_csv,
+    password,
+):
+    """
+    Функция по извлечению полезной информации из CSV файла
+    :param path_csv: выходной CSV от функции stego_generate
+    :param password: пароль
+    :return:
+    str -- message
+    """
+
+    byte_list = list()
+    with open(path_csv, 'r') as fr:
+        fr.readline()
+        for line in fr:
+            byte_ = get_byte(line)
+            byte_list.append(byte_)
+
+    crypt_message = bytes(byte_list)
+
+    message = decrypt(crypt_message, password)
+
+    return message
+
+
+def __test():
+
+    path_csv_in = os.path.join(ROOT_PATH, 'data', 'world-cities.csv')
+    path_csv_out = os.path.join(ROOT_PATH, 'data', 'world-cities.stego.csv')
+
+    message = """Как рано мог он лицемерить,
+Таить надежду, ревновать,
+Разуверять, заставить верить,
+Казаться мрачным, изнывать,
+Являться гордым и послушным,
+Внимательным иль равнодушным!
+Как томно был он молчалив,
+Как пламенно красноречив,
+В сердечных письмах как небрежен!
+Одним дыша, одно любя,
+Как он умел забыть себя!
+Как взор его был быстр и нежен,
+Стыдлив и дерзок, а порой
+Блистал послушною слезой!
+    """
+
+    password = """И всё же порядок вещей нелеп.
+Люди, плавящие металл,
+Ткущие ткани, пекущие хлеб,
+Кто-то бессовестно вас обокрал.
+
+Не только ваш труд, любовь, досуг -
+Украли пытливость открытых глаз;
+Набором истин кормя из рук,
+Умение мыслить украли у вас.
+    """
+
+    print("stego_generate ({0})".format(datetime.datetime.now()))
+    stego_generate(
+        path_csv_in,
+        path_csv_out,
+        message,
+        password,
+    )
+
+    print("stego_extract ({0})".format(datetime.datetime.now()))
+    message2 = stego_extract(path_csv_out, password)
+
+    print('done! ({0})'.format(datetime.datetime.now()))
+
+    print("Извлеченное сообщение:\n\n{0}".format(message2))
+
 
 if __name__ == u"__main__":
     print(u'Run chs {0}'.format(datetime.datetime.now()))
 
-    password = "sdfsdfsdfewf43"
-    message = "Привет мир!"
-
-    message2 = decrypt(encrypt(message, password), password)
-    if message != message2:
-        print("Всё плохо!")
-    else:
-        print("Всё хорошо!")
+    __test()
 
