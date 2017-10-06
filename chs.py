@@ -216,8 +216,27 @@ def __test():
     print("Извлеченное сообщение:\n\n{0}".format(message2))
 
 
+def __test2():
+    path_csv_out = os.path.join(ROOT_PATH, 'data', 'world-cities.stego.csv')
+
+    password = """И всё же порядок вещей нелеп.
+Люди, плавящие металл,
+Ткущие ткани, пекущие хлеб,
+Кто-то бессовестно вас обокрал.
+
+Не только ваш труд, любовь, досуг -
+Украли пытливость открытых глаз;
+Набором истин кормя из рук,
+Умение мыслить украли у вас.
+    """
+
+    message2 = stego_extract(path_csv_out, password)
+    print("message2::{0}".format(message2))
+
+
 if __name__ == u"__main__":
     print(u'Run chs {0}'.format(datetime.datetime.now()))
 
-    __test()
+    # __test()
+    __test2()
 
