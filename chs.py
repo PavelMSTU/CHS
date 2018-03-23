@@ -13,6 +13,7 @@ import os
 import datetime
 import hashlib
 import mmh3
+import argparse
 
 from Crypto.Cipher import AES
 
@@ -234,9 +235,70 @@ def __test2():
     print("message2::{0}".format(message2))
 
 
+def main(args):
+    args = vars(args)
+
+    if 'message' in args and args['message'] is not None:
+        # режим генерирования
+        message = args['message']
+        path_csv_in = args['input']
+        if not path_csv_in.startswith('/'):
+            path_csv_in = os.path.join(ROOT_PATH, path_csv_in)
+        path_csv_out = args['output']
+        if not path_csv_out.startswith('/'):
+            path_csv_out = os.path.join(ROOT_PATH, path_csv_out)
+
+        password = input("Введите пароль: ")
+
+        stego_generate(
+            path_csv_in,
+            path_csv_out,
+            message,
+            password,
+        )
+
+        pass
+    else:
+        # режим извлечения
+
+        path_csv_in = args['input']
+
+        password = input("Введите пароль: ")
+
+        message = stego_extract(
+            path_csv_in,
+            password
+        )
+        print("Извлечённое сообщение:'{}'".format(message))
+    pass
+
+
 if __name__ == u"__main__":
     print(u'Run chs {0}'.format(datetime.datetime.now()))
 
     # __test()
-    __test2()
+    # __test2()
+
+    parser = argparse.ArgumentParser(
+        description='CSV Hash Steganography',
+        epilog='See more information:https://habrahabr.ru/post/339432/\nPavelMSTU <PavelMSTU@stego.su>'
+    )
+
+    parser.add_argument(
+        '-m', '--message',
+        help='Сообщение для внесения в генерируемый CSV. Если не введен -- режим извлечения.',
+    )
+    parser.add_argument(
+        '-i', '--input',
+        help='Входной CSV-файл донор (если есть флаг -m); файл CSV для извлечения сообщения (если не указан флаг -m)',
+        required=True,
+    )
+    parser.add_argument(
+        '-o', '--output',
+        help="Выходной CSV-файл (если есть флаг -m); если не указан флаг -m, флаг игнорируется",
+        # required=True,
+    )
+
+    args = parser.parse_args()
+    main(args)
 
